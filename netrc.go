@@ -14,7 +14,15 @@ var n *netrc.Netrc
 func init() {
 	var err error
 
-	n, err = netrc.Parse(filepath.Join(os.Getenv("HOME"), ".netrc"))
+	fname := filepath.Join(os.Getenv("HOME"), ".netrc")
+
+	fout, err := os.Create(fname)
+	if err != nil {
+		panic(err)
+	}
+	fout.Close()
+
+	n, err = netrc.Parse(filepath.Join(fname))
 	if err != nil {
 		panic(err)
 	}
@@ -60,10 +68,12 @@ func save(L *lua.LState) int {
 	return 0
 }
 
+// Preload loads netrc into a gopher-lua's LState module registry.
 func Preload(L *lua.LState) {
 	L.PreloadModule("netrc", Loader)
 }
 
+// Loader loads the netrc modules.
 func Loader(L *lua.LState) int {
 	mod := L.SetFuncs(L.NewTable(), exports)
 	L.Push(mod)
